@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/select";
 import Image from "next/image";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp, updateDoc } from "firebase/firestore";
+import { collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp, updateDoc } from "firebase/firestore/lite";
 
 const categories = [
   "GRAB & GO — Sandwiches + Wraps",

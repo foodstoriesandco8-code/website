@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
-import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
+import { collection, query, where, orderBy, getDocs } from "firebase/firestore/lite";
 import Navbar from "@/components/Navbar";
 import { ShoppingBag, ArrowLeft, Clock, CheckCircle2, Truck, ChefHat, LogOut, XCircle } from "lucide-react";
 import Link from "next/link";

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs } from "firebase/firestore/lite";
 import Navbar from "@/components/Navbar";
 import { MapPin, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
-import { collection, query, orderBy, getDocs, updateDoc, doc, deleteDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, orderBy, getDocs, updateDoc, doc, deleteDoc, serverTimestamp } from "firebase/firestore/lite";
 import { ShoppingBag, ChevronDown, CheckCircle2, Clock, Truck, ChefHat, Trash2, XCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 

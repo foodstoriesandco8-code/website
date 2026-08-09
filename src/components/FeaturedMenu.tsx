@@ -6,7 +6,7 @@ import { Heart, Search, SlidersHorizontal, Plus } from "lucide-react";
 import Image from "next/image";
 import { Button } from "./ui/button";
 import { db } from "@/lib/firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore/lite";
 
 import { useCart } from "@/context/CartContext";
 
