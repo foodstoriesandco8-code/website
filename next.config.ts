@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // @ts-expect-error - undocumented Next.js property for resolving HMR cross-origin block
+  // Allow external IPs in dev mode for testing HMR on mobile
   allowedDevOrigins: ['192.168.1.3', 'localhost', '127.0.0.1'],
   images: {
     remotePatterns: [
