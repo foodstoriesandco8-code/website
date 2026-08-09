@@ -13,12 +13,22 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "dummy-measurement-id",
 };
 
-// Initialize Firebase only if it hasn't been initialized already (important for Next.js SSR)
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+// Initialize Firebase safely
+let app;
+let auth: any = null;
+let db: any = null;
+let storage: any = null;
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
+try {
+  app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+  auth = getAuth(app);
+  db = getFirestore(app);
+  storage = getStorage(app);
+} catch (error) {
+  console.error("Firebase initialization error (SSR/Cloudflare Worker):", error);
+}
+
+export { auth, db, storage };
 
 // Disable app verification for testing (bypasses billing requirement for fictional numbers)
 if (process.env.NODE_ENV === 'development') {
