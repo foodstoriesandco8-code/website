@@ -265,7 +265,7 @@ export default function AdminMenuPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="category">Category</Label>
-                  <Select required value={category} onValueChange={setCategory}>
+                  <Select required value={category} onValueChange={(val) => setCategory(val || "")}>
                     <SelectTrigger className="h-12">
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
