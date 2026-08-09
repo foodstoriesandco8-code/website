@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, Timestamp } from "firebase/firestore";
+import Link from "next/link";
 
 export default function AdminDashboard() {
   const [todayRevenue, setTodayRevenue] = useState(0);
@@ -133,9 +134,9 @@ export default function AdminDashboard() {
         <div className="lg:col-span-2 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden flex flex-col min-h-[400px]">
           <div className="p-6 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center">
             <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Recent Orders</h2>
-            <Button variant="outline" size="sm" asChild>
-              <a href="/admin/orders">View All</a>
-            </Button>
+            <Link href="/admin/orders">
+              <Button variant="outline" size="sm">View All</Button>
+            </Link>
           </div>
           {recentOrders.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-zinc-500">

@@ -104,8 +104,8 @@ export default function AdminSubscriptionsPage() {
         </div>
         
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-          <SheetTrigger asChild>
-            <Button className="bg-primary hover:bg-primary/90 text-white font-semibold shadow-sm">
+          <SheetTrigger>
+            <Button className="bg-primary hover:bg-primary/90 text-white font-semibold shadow-md rounded-full px-6 h-12" type="button">
               <Plus className="mr-2 h-4 w-4" /> Add Plan
             </Button>
           </SheetTrigger>
