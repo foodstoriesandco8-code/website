@@ -88,16 +88,20 @@ export default function AdminMenuPage() {
 
   const uploadToCloudinary = async (file: File) => {
     const data = new FormData();
-    data.append("file", file);
-    data.append("upload_preset", "website");
+    const preset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "website";
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "zozwqdaz";
     
-    const res = await fetch("https://api.cloudinary.com/v1_1/zozwqdaz/image/upload", {
+    data.append("file", file);
+    data.append("upload_preset", preset);
+    
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
       method: "POST",
       body: data,
     });
     
     if (!res.ok) {
-      throw new Error("Failed to upload image to Cloudinary");
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error?.message || "Failed to upload image to Cloudinary");
     }
     
     const fileInfo = await res.json();
@@ -141,9 +145,9 @@ export default function AdminMenuPage() {
       
       // Refresh list
       fetchProducts();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding product:", error);
-      alert("Failed to add product. Make sure Cloudinary preset is set to Unsigned.");
+      alert(`Failed to add product. Reason: ${error?.message || "Unknown error occurred"}`);
     } finally {
       setIsLoading(false);
     }
