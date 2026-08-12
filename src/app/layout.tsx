@@ -17,6 +17,7 @@ export const metadata: Metadata = {
 };
 
 import { CartProvider } from "@/context/CartContext";
+import { AuthProvider } from "@/context/AuthContext";
 import FloatingCart from "@/components/FloatingCart";
 
 export default function RootLayout({
@@ -30,10 +31,12 @@ export default function RootLayout({
       className={cn("h-full", "antialiased", poppins.variable, "font-sans", geist.variable)}
     >
       <body className="min-h-full flex flex-col font-sans">
-        <CartProvider>
-          {children}
-          <FloatingCart />
-        </CartProvider>
+        <AuthProvider>
+          <CartProvider>
+            {children}
+            <FloatingCart />
+          </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );

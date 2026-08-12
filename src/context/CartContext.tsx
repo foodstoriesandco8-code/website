@@ -81,7 +81,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
     setItems((prevItems) =>
       prevItems.map((item) =>
-        item.id === id ? { ...item, quantity } : item
+        (item.cartId || item.id) === cartId ? { ...item, quantity } : item
       )
     );
   };

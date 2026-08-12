@@ -10,6 +10,7 @@ import LoginModal from "./LoginModal";
 import Image from "next/image";
 
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -21,21 +22,11 @@ export default function Navbar() {
   const isHome = pathname === "/";
   const effectiveIsScrolled = isScrolled || !isHome;
 
-  const [user, setUser] = useState<{name: string, phone: string} | null>(null);
+  const { user, login, logout } = useAuth();
   const { totalItems } = useCart();
 
-  useEffect(() => {
-    const phone = localStorage.getItem('userPhone');
-    const name = localStorage.getItem('userName');
-    if (phone) {
-      setUser({ name: name || '', phone });
-    }
-  }, []);
-
   const handleLoginSuccess = (userData: {name: string, phone: string}) => {
-    localStorage.setItem('userPhone', userData.phone);
-    if (userData.name) localStorage.setItem('userName', userData.name);
-    setUser(userData);
+    login(userData);
     setIsLoginOpen(false);
   };
 
@@ -221,9 +212,7 @@ export default function Navbar() {
                       variant="outline" 
                       className="w-full h-12 rounded-full text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
                       onClick={() => {
-                        localStorage.removeItem('userPhone');
-                        localStorage.removeItem('userName');
-                        setUser(null);
+                        logout();
                         setIsMobileMenuOpen(false);
                       }}
                     >
