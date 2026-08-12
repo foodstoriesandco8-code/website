@@ -144,6 +144,20 @@ export default function AdminOrdersPage() {
                     </p>
                   </div>
                   <div>
+                    <p className="text-sm font-medium text-zinc-500">Order Type</p>
+                    <p className="font-semibold text-zinc-900 dark:text-white text-sm">
+                      {order.orderType === "SCHEDULED" ? (
+                        <span className="text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded-md">
+                          Scheduled: {order.scheduledTime}
+                        </span>
+                      ) : (
+                        <span className="text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 px-2 py-1 rounded-md">
+                          ASAP
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                  <div>
                     <p className="text-sm font-medium text-zinc-500">Total Amount</p>
                     <p className="font-bold text-primary text-lg">₹{order.billDetails?.grandTotal}</p>
                   </div>

@@ -48,6 +48,7 @@ export default function AdminMenuPage() {
   const [actualPrice, setActualPrice] = useState("");
   const [offerPrice, setOfferPrice] = useState("");
   const [category, setCategory] = useState("");
+  const [dietaryType, setDietaryType] = useState<"Veg" | "Non-Veg">("Veg");
   const [description, setDescription] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState("");
@@ -127,6 +128,7 @@ export default function AdminMenuPage() {
         actualPrice: Number(actualPrice),
         offerPrice: Number(offerPrice),
         category,
+        dietaryType,
         description,
         image: imageUrl,
         status: "Active",
@@ -138,6 +140,7 @@ export default function AdminMenuPage() {
       setActualPrice("");
       setOfferPrice("");
       setCategory("");
+      setDietaryType("Veg");
       setDescription("");
       setImageFile(null);
       setImagePreview("");
@@ -279,6 +282,20 @@ export default function AdminMenuPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Dietary Type</Label>
+                  <div className="flex gap-6 mt-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="radio" name="dietaryType" value="Veg" checked={dietaryType === "Veg"} onChange={() => setDietaryType("Veg")} className="accent-green-600 w-4 h-4" />
+                      <span className="text-sm font-medium">Vegetarian</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="radio" name="dietaryType" value="Non-Veg" checked={dietaryType === "Non-Veg"} onChange={() => setDietaryType("Non-Veg")} className="accent-red-600 w-4 h-4" />
+                      <span className="text-sm font-medium">Non-Vegetarian</span>
+                    </label>
+                  </div>
                 </div>
 
                 <div className="space-y-2">

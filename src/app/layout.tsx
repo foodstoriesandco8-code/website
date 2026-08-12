@@ -12,7 +12,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Food Stories & Co | Eat Fresh, Live Better",
+  title: "The Food Stories & Co. | Eat Fresh, Live Better",
   description: "Healthy meals made fresh every day.",
 };
 

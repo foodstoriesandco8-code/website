@@ -23,6 +23,11 @@ export default function CartPage() {
   const [deliveryAddress, setDeliveryAddress] = useState({ flatNo: "", address: "", pincode: "", contactNumber: "", deliveryNotes: "" });
   const [isFetchingAddress, setIsFetchingAddress] = useState(false);
   
+  // Schedule State
+  const [orderType, setOrderType] = useState<"ASAP" | "SCHEDULED">("ASAP");
+  const [scheduledDate, setScheduledDate] = useState("");
+  const [scheduledTime, setScheduledTime] = useState("");
+  
   // Login Modal State
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   
@@ -123,6 +128,8 @@ export default function CartPage() {
           gst,
           grandTotal
         },
+        orderType: orderType,
+        scheduledTime: orderType === "SCHEDULED" ? `${scheduledDate} ${scheduledTime}` : null,
         status: "Pending",
         createdAt: serverTimestamp()
       });
@@ -206,7 +213,7 @@ export default function CartPage() {
                 
                 <div className="space-y-6">
                   {items.map((item) => (
-                    <div key={item.id} className="flex gap-4 sm:gap-6 py-4 border-b border-zinc-100 dark:border-zinc-800 last:border-0 last:pb-0">
+                    <div key={item.cartId || item.id} className="flex gap-4 sm:gap-6 py-4 border-b border-zinc-100 dark:border-zinc-800 last:border-0 last:pb-0">
                       <div className="relative h-20 w-20 sm:h-24 sm:w-24 rounded-2xl overflow-hidden bg-zinc-100 flex-shrink-0">
                         {item.image ? (
                           <Image src={item.image} alt={item.name} fill className="object-cover" />
@@ -217,18 +224,25 @@ export default function CartPage() {
                       
                       <div className="flex flex-1 flex-col justify-between">
                         <div className="flex justify-between items-start gap-4">
-                          <h3 className="font-bold text-zinc-900 dark:text-white line-clamp-2">{item.name}</h3>
+                          <div>
+                            <h3 className="font-bold text-zinc-900 dark:text-white line-clamp-2">{item.name}</h3>
+                            {item.addOns && item.addOns.length > 0 && (
+                              <p className="text-xs text-zinc-500 mt-1">
+                                + {item.addOns.map(a => a.name).join(', ')}
+                              </p>
+                            )}
+                          </div>
                           <span className="font-bold text-lg">₹{item.price * item.quantity}</span>
                         </div>
                         
                         <div className="flex items-center justify-between mt-4">
                           <div className="flex h-10 items-center justify-between rounded-lg bg-zinc-100 dark:bg-zinc-800 px-1 w-24">
-                            <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="flex h-full w-8 items-center justify-center font-bold text-lg text-zinc-600 hover:text-black dark:text-zinc-400 dark:hover:text-white">-</button>
+                            <button onClick={() => updateQuantity(item.cartId || item.id, item.quantity - 1)} className="flex h-full w-8 items-center justify-center font-bold text-lg text-zinc-600 hover:text-black dark:text-zinc-400 dark:hover:text-white">-</button>
                             <span className="font-bold text-sm">{item.quantity}</span>
-                            <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="flex h-full w-8 items-center justify-center font-bold text-lg text-zinc-600 hover:text-black dark:text-zinc-400 dark:hover:text-white">+</button>
+                            <button onClick={() => updateQuantity(item.cartId || item.id, item.quantity + 1)} className="flex h-full w-8 items-center justify-center font-bold text-lg text-zinc-600 hover:text-black dark:text-zinc-400 dark:hover:text-white">+</button>
                           </div>
                           
-                          <button onClick={() => removeFromCart(item.id)} className="text-zinc-400 hover:text-red-500 transition-colors p-2">
+                          <button onClick={() => removeFromCart(item.cartId || item.id)} className="text-zinc-400 hover:text-red-500 transition-colors p-2">
                             <Trash2 className="h-5 w-5" />
                           </button>
                         </div>
@@ -290,6 +304,33 @@ export default function CartPage() {
             </div>
             
             <div className="space-y-4">
+              <div className="bg-zinc-50 dark:bg-zinc-950 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800">
+                <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 block mb-3">Order Type</label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="orderType" value="ASAP" checked={orderType === "ASAP"} onChange={() => setOrderType("ASAP")} className="accent-primary w-4 h-4" />
+                    <span className="text-sm font-medium">Order Now (ASAP)</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="orderType" value="SCHEDULED" checked={orderType === "SCHEDULED"} onChange={() => setOrderType("SCHEDULED")} className="accent-primary w-4 h-4" />
+                    <span className="text-sm font-medium">Schedule for Later</span>
+                  </label>
+                </div>
+                
+                {orderType === "SCHEDULED" && (
+                  <div className="flex gap-4 mt-4">
+                    <div className="flex-1">
+                      <label className="text-xs font-semibold text-zinc-500 block mb-1">Date</label>
+                      <input type="date" value={scheduledDate} onChange={e => setScheduledDate(e.target.value)} className="w-full p-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 outline-none focus:border-primary text-sm" />
+                    </div>
+                    <div className="flex-1">
+                      <label className="text-xs font-semibold text-zinc-500 block mb-1">Time</label>
+                      <input type="time" value={scheduledTime} onChange={e => setScheduledTime(e.target.value)} className="w-full p-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 outline-none focus:border-primary text-sm" />
+                    </div>
+                  </div>
+                )}
+              </div>
+            
               <div>
                 <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Flat / Room No. / Building Name</label>
                 <input 

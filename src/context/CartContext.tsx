@@ -4,10 +4,12 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 
 export interface CartItem {
   id: string;
+  cartId?: string;
   name: string;
   price: number;
   image: string;
   quantity: number;
+  addOns?: { name: string; price: number }[];
 }
 
 interface CartContextType {
@@ -46,25 +48,35 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [items, isLoaded]);
 
-  const addToCart = (product: Omit<CartItem, "quantity">) => {
+  const addToCart = (product: Omit<CartItem, "quantity" | "cartId">) => {
     setItems((prevItems) => {
-      const existingItem = prevItems.find((item) => item.id === product.id);
-      if (existingItem) {
-        return prevItems.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-        );
+      // Calculate a unique cart item ID based on product ID and selected add-ons
+      const addOnsKey = product.addOns 
+        ? product.addOns.map(a => a.name).sort().join(',') 
+        : '';
+      const uniqueCartId = `${product.id}-${addOnsKey}`;
+
+      const existingItemIndex = prevItems.findIndex((item) => item.cartId === uniqueCartId);
+
+      if (existingItemIndex !== -1) {
+        // If product with exactly same add-ons exists, increment quantity
+        const newItems = [...prevItems];
+        newItems[existingItemIndex].quantity += 1;
+        return newItems;
       }
-      return [...prevItems, { ...product, quantity: 1 }];
+      
+      // Otherwise add as new item
+      return [...prevItems, { ...product, cartId: uniqueCartId, quantity: 1 }];
     });
   };
 
-  const removeFromCart = (id: string) => {
-    setItems((prevItems) => prevItems.filter((item) => item.id !== id));
+  const removeFromCart = (cartId: string) => {
+    setItems((prevItems) => prevItems.filter((item) => item.cartId !== cartId));
   };
 
-  const updateQuantity = (id: string, quantity: number) => {
+  const updateQuantity = (cartId: string, quantity: number) => {
     if (quantity <= 0) {
-      removeFromCart(id);
+      removeFromCart(cartId);
       return;
     }
     setItems((prevItems) =>

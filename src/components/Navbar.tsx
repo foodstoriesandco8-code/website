@@ -67,7 +67,7 @@ export default function Navbar() {
                 effectiveIsScrolled ? "text-zinc-900 dark:text-white" : "text-white"
               }`}
             >
-              Food Stories <span className="text-primary font-medium text-xl">& Co</span>
+              The Food Stories <span className="text-primary font-medium text-xl">& Co.</span>
             </span>
           </Link>
 
@@ -98,7 +98,7 @@ export default function Navbar() {
             {user ? (
               <>
 
-                <Link href="/orders">
+                <Link href="/profile">
                   <Button
                     variant="ghost"
                     className={`hidden sm:flex rounded-full gap-2 font-semibold ${

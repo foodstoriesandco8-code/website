@@ -1,106 +1,224 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore/lite";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore/lite";
 import Navbar from "@/components/Navbar";
-import { CalendarDays, CheckCircle2 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Leaf, Drumstick, Sun, Moon, Calendar, CheckCircle2 } from "lucide-react";
+
+const SUBSCRIPTION_PLANS = [
+  { id: "7-days", name: "7 Days Starter", duration: 7, pricePerMeal: 250, popular: false },
+  { id: "15-days", name: "15 Days Half-Month", duration: 15, pricePerMeal: 220, popular: true },
+  { id: "30-days", name: "30 Days Transformation", duration: 30, pricePerMeal: 200, popular: false },
+];
 
 export default function SubscriptionsPage() {
-  const [subscriptions, setSubscriptions] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, isAuthLoaded } = useAuth();
+  const router = useRouter();
+  
+  const [selectedPlan, setSelectedPlan] = useState(SUBSCRIPTION_PLANS[1]);
+  const [dietaryType, setDietaryType] = useState<"Veg" | "Non-Veg">("Veg");
+  const [mealType, setMealType] = useState<"Lunch" | "Dinner">("Lunch");
+  
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  useEffect(() => {
-    const fetchActiveSubscriptions = async () => {
-      try {
-        const q = query(collection(db, "subscriptions"), where("status", "==", "Active"));
-        const querySnapshot = await getDocs(q);
-        const subData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setSubscriptions(subData);
-      } catch (error) {
-        console.error("Error fetching subscriptions:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchActiveSubscriptions();
-  }, []);
+  // Non-Veg add-on cost
+  const dietAddon = dietaryType === "Non-Veg" ? 50 : 0;
+  
+  const totalAmount = selectedPlan.duration * (selectedPlan.pricePerMeal + dietAddon);
 
-  const handleSubscribe = (planName: string) => {
-    const phoneNumber = "919986698096";
-    const message = encodeURIComponent(`Hi! I am interested in subscribing to the ${planName}.`);
-    window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
+  const handleSubscribe = async () => {
+    if (!isAuthLoaded) return;
+    
+    if (!user) {
+      alert("Please log in to subscribe to a meal plan.");
+      // In a real app, open login modal or redirect to login page
+      return;
+    }
+
+    setIsProcessing(true);
+    
+    try {
+      // Create subscription in Firebase
+      await addDoc(collection(db, "subscriptions"), {
+        userId: user.uid,
+        userEmail: user.email,
+        userName: user.name || "Customer",
+        planId: selectedPlan.id,
+        planName: selectedPlan.name,
+        duration: selectedPlan.duration,
+        dietaryPreference: dietaryType,
+        mealType: mealType,
+        totalAmount: totalAmount,
+        status: "Active",
+        startDate: serverTimestamp(),
+      });
+      
+      alert("Subscription Activated Successfully!");
+      router.push("/profile");
+      
+    } catch (error) {
+      console.error("Error creating subscription:", error);
+      alert("Something went wrong. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black font-sans">
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
       <Navbar />
-
-      <main className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto min-h-screen">
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-zinc-900 dark:text-white mb-6">
-            Healthy Habits, Delivered.
+      
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-24">
+        
+        <div className="text-center mb-12">
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-zinc-900 dark:text-white mb-4">
+            Healthy Meals on Auto-Pilot
           </h1>
-          <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
-            Choose a subscription plan that fits your lifestyle. Get fresh, chef-prepared meals delivered directly to your door on a regular schedule.
+          <p className="text-xl text-zinc-500 max-w-2xl mx-auto">
+            Choose a plan, set your preferences, and let us take care of your daily nutrition without the hassle of ordering every day.
           </p>
         </div>
 
-        {isLoading ? (
-          <div className="flex justify-center items-center py-24">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          </div>
-        ) : subscriptions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-            <CalendarDays className="h-16 w-16 mb-4 text-zinc-300 dark:text-zinc-700" />
-            <p className="text-xl font-bold text-zinc-900 dark:text-white">No active plans found</p>
-            <p className="mt-2 text-zinc-500">We are currently crafting new subscription plans. Check back soon!</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <AnimatePresence>
-              {subscriptions.map((sub, index) => (
-                <motion.div
-                  key={sub.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="bg-white dark:bg-zinc-900 rounded-3xl p-8 shadow-sm border border-zinc-200 dark:border-zinc-800 hover:shadow-xl hover:border-primary/50 transition-all flex flex-col relative overflow-hidden group"
+        <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 sm:p-10 shadow-xl border border-zinc-200 dark:border-zinc-800">
+          
+          {/* STEP 1: Choose Duration */}
+          <section className="mb-12">
+            <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-6 flex items-center gap-2">
+              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white text-sm">1</span> 
+              Choose Your Plan
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              {SUBSCRIPTION_PLANS.map(plan => (
+                <div 
+                  key={plan.id}
+                  onClick={() => setSelectedPlan(plan)}
+                  className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all ${
+                    selectedPlan.id === plan.id 
+                      ? "border-primary bg-primary/5 shadow-md shadow-primary/10" 
+                      : "border-zinc-200 dark:border-zinc-800 hover:border-primary/50"
+                  }`}
                 >
-                  <div className="absolute top-0 right-0 p-4">
-                     <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider">
-                       {sub.duration}
-                     </span>
-                  </div>
-
-                  <h3 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2 pr-16">
-                    {sub.name}
-                  </h3>
+                  {plan.popular && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                      Most Popular
+                    </div>
+                  )}
+                  <h3 className="font-bold text-xl text-zinc-900 dark:text-white mb-2">{plan.name}</h3>
+                  <p className="text-zinc-500 text-sm mb-4">₹{plan.pricePerMeal} / meal</p>
                   
-                  <div className="flex items-baseline gap-1 mb-6">
-                    <span className="text-4xl font-extrabold text-zinc-900 dark:text-white">₹{sub.cost}</span>
-                    <span className="text-sm text-zinc-500 dark:text-zinc-400 font-medium">/ {sub.duration}</span>
-                  </div>
-                  
-                  <div className="flex-1 mb-8">
-                    <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                      {sub.description}
-                    </p>
-                  </div>
-                  
-                  <Button 
-                    className="w-full h-14 rounded-full text-lg font-semibold bg-primary hover:bg-primary/90 hover:scale-105 transition-all shadow-md shadow-primary/20"
-                    onClick={() => handleSubscribe(sub.name)}
-                  >
-                    Subscribe Now
-                  </Button>
-                </motion.div>
+                  {selectedPlan.id === plan.id && (
+                    <div className="absolute top-4 right-4 text-primary">
+                      <CheckCircle2 className="w-6 h-6" />
+                    </div>
+                  )}
+                </div>
               ))}
-            </AnimatePresence>
-          </div>
-        )}
+            </div>
+          </section>
+
+          {/* STEP 2: Preferences */}
+          <section className="mb-12">
+            <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-6 flex items-center gap-2">
+              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white text-sm">2</span> 
+              Set Preferences
+            </h2>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+              {/* Dietary Type */}
+              <div>
+                <h3 className="font-semibold text-zinc-700 dark:text-zinc-300 mb-4">Dietary Type</h3>
+                <div className="flex gap-4">
+                  <button 
+                    onClick={() => setDietaryType("Veg")}
+                    className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-xl border-2 font-semibold transition-all ${
+                      dietaryType === "Veg" ? "border-green-600 bg-green-50 text-green-700 dark:bg-green-900/20" : "border-zinc-200 dark:border-zinc-800 text-zinc-500"
+                    }`}
+                  >
+                    <Leaf className="w-5 h-5" /> Veg
+                  </button>
+                  <button 
+                    onClick={() => setDietaryType("Non-Veg")}
+                    className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-xl border-2 font-semibold transition-all ${
+                      dietaryType === "Non-Veg" ? "border-red-600 bg-red-50 text-red-700 dark:bg-red-900/20" : "border-zinc-200 dark:border-zinc-800 text-zinc-500"
+                    }`}
+                  >
+                    <Drumstick className="w-5 h-5" /> Non-Veg <span className="text-xs font-normal">(+₹50/meal)</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Meal Type */}
+              <div>
+                <h3 className="font-semibold text-zinc-700 dark:text-zinc-300 mb-4">Meal Time</h3>
+                <div className="flex gap-4">
+                  <button 
+                    onClick={() => setMealType("Lunch")}
+                    className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-xl border-2 font-semibold transition-all ${
+                      mealType === "Lunch" ? "border-primary bg-primary/5 text-primary" : "border-zinc-200 dark:border-zinc-800 text-zinc-500"
+                    }`}
+                  >
+                    <Sun className="w-5 h-5" /> Lunch
+                  </button>
+                  <button 
+                    onClick={() => setMealType("Dinner")}
+                    className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-xl border-2 font-semibold transition-all ${
+                      mealType === "Dinner" ? "border-primary bg-primary/5 text-primary" : "border-zinc-200 dark:border-zinc-800 text-zinc-500"
+                    }`}
+                  >
+                    <Moon className="w-5 h-5" /> Dinner
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* STEP 3: Summary & Checkout */}
+          <section className="bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl p-6 sm:p-8 border border-zinc-100 dark:border-zinc-800">
+            <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-6">Order Summary</h2>
+            
+            <div className="space-y-4 mb-8">
+              <div className="flex justify-between items-center text-lg">
+                <span className="text-zinc-600 dark:text-zinc-400">Selected Plan</span>
+                <span className="font-semibold">{selectedPlan.name}</span>
+              </div>
+              <div className="flex justify-between items-center text-lg">
+                <span className="text-zinc-600 dark:text-zinc-400">Total Meals</span>
+                <span className="font-semibold">{selectedPlan.duration} Meals</span>
+              </div>
+              <div className="flex justify-between items-center text-lg">
+                <span className="text-zinc-600 dark:text-zinc-400">Base Price (₹{selectedPlan.pricePerMeal} × {selectedPlan.duration})</span>
+                <span className="font-semibold">₹{selectedPlan.pricePerMeal * selectedPlan.duration}</span>
+              </div>
+              {dietaryType === "Non-Veg" && (
+                <div className="flex justify-between items-center text-lg">
+                  <span className="text-zinc-600 dark:text-zinc-400">Non-Veg Add-on (₹50 × {selectedPlan.duration})</span>
+                  <span className="font-semibold">₹{50 * selectedPlan.duration}</span>
+                </div>
+              )}
+              <div className="border-t border-zinc-200 dark:border-zinc-700 pt-4 flex justify-between items-center text-2xl font-bold">
+                <span className="text-zinc-900 dark:text-white">Total Amount</span>
+                <span className="text-primary">₹{totalAmount}</span>
+              </div>
+            </div>
+
+            <Button 
+              size="lg" 
+              className="w-full h-16 text-lg font-bold rounded-xl bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20"
+              onClick={handleSubscribe}
+              disabled={isProcessing}
+            >
+              {isProcessing ? "Processing..." : `Subscribe Now • ₹${totalAmount}`}
+            </Button>
+            <p className="text-center text-sm text-zinc-500 mt-4">
+              By subscribing, you agree to our Terms of Service. You can pause or manage your subscription anytime from your Profile.
+            </p>
+          </section>
+
+        </div>
       </main>
     </div>
   );
